@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 800px;
+            height: 90vh;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .chat-box {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f5f5f5;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+
+        .message.user .message-content {
+            background: #667eea;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.bot .message-content {
+            background: white;
+            color: #333;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .image-preview {
+            max-width: 100%;
+            max-height: 300px;
+            margin-top: 10px;
+            border-radius: 10px;
+        }
+
+        .input-area {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        #userInput {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        #userInput:focus {
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .icon-btn {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+            padding: 0;
+        }
+
+        .icon-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .icon-btn:active {
+            transform: scale(0.95);
+        }
+
+        .icon-btn.plus {
+            background: #48bb78;
+        }
+
+        .icon-btn.plus:hover {
+            box-shadow: 0 5px 15px rgba(72, 187, 120, 0.4);
+        }
+
+        .icon-btn.recording {
+            background: #e53e3e;
+            animation: pulse 1.5s infinite;
+        }
+
+        .icon-btn.muted {
+            background: #718096;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.6;
+            }
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            margin: 10px 0;
+        }
+
+        .warning {
+            color: #e53e3e;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        code {
+            background: #2d3748;
+            color: #68d391;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+
+        pre {
+            background: #2d3748;
+            color: #68d391;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+
+        .collapsible-content {
+            margin: 10px 0;
+            width: 100%;
+        }
+
+        .collapsible-btn {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            cursor: pointer;
+            padding: 10px 14px;
+            width: 100%;
+            border: none;
+            text-align: left;
+            outline: none;
+            font-size: 14px;
+            border-radius: 8px;
+            transition: all 0.3s;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .collapsible-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .collapsible-body {
+            padding: 12px;
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-top: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .collapsible-body pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            margin: 0;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            color: #333;
+            background: #f5f5f5;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                width: 100%;
+                height: 100vh;
+                border-radius: 0;
+            }
+
+            .message-content {
+                max-width: 85%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Virtual Assistant</h1>
+            <p>Ask me anything - Math, Facts, Programs, Diseases & More!</p>
+        </div>
+
+        <div class="chat-box" id="chatBox">
+            <div class="message bot">
+                <div class="message-content">
+                    Hello! I'm your virtual assistant. How can I help you today?<br><br>
+                    You can:<br>
+                    • Ask math questions<br>
+                    • Search Wikipedia<br>
+                    • Get disease information<br>
+                    • Request program code<br>
+                    • Upload images/documents<br>
+                    • Ask me to tell a story<br>
+                    • Open websites (YouTube, Google, etc.)
+                </div>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">Processing...</div>
+
+        <div class="input-area">
+            <button class="icon-btn plus" onclick="document.getElementById('fileInput').click()" title="Upload file">+</button>
+            <input type="file" id="fileInput" accept=".png,.jpg,.jpeg,.bmp,.pdf,.docx,.txt" onchange="uploadFile()">
+
+            <button class="icon-btn" id="micBtn" onclick="toggleVoiceInput()" title="Voice input">🎤</button>
+
+            <input type="text" id="userInput" placeholder="Type your message here..." onkeypress="handleKeyPress(event)">
+
+            <button class="icon-btn" id="muteBtn" onclick="toggleMute()" title="Mute/Unmute audio">🔊</button>
+
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        let isAudioMuted = false;
+        let isRecording = false;
+        let recognition = null;
+
+        // Initialize Speech Recognition
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('userInput').value = transcript;
+                stopRecording();
+            };
+
+            recognition.onerror = function(event) {
+                console.error('Speech recognition error:', event.error);
+                stopRecording();
+            };
+
+            recognition.onend = function() {
+                stopRecording();
+            };
+        }
+
+        function toggleVoiceInput() {
+            if (!recognition) {
+                alert('Voice recognition is not supported in your browser. Please use Chrome or Edge.');
+                return;
+            }
+
+            if (isRecording) {
+                recognition.stop();
+                stopRecording();
+            } else {
+                recognition.start();
+                startRecording();
+            }
+        }
+
+        function startRecording() {
+            isRecording = true;
+            const micBtn = document.getElementById('micBtn');
+            micBtn.classList.add('recording');
+            micBtn.innerHTML = '🔴';
+        }
+
+        function stopRecording() {
+            isRecording = false;
+            const micBtn = document.getElementById('micBtn');
+            micBtn.classList.remove('recording');
+            micBtn.innerHTML = '🎤';
+        }
+
+        function toggleMute() {
+            isAudioMuted = !isAudioMuted;
+            const muteBtn = document.getElementById('muteBtn');
+
+            if (isAudioMuted) {
+                muteBtn.classList.add('muted');
+                muteBtn.innerHTML = '🔇';
+                window.speechSynthesis.cancel();
+            } else {
+                muteBtn.classList.remove('muted');
+                muteBtn.innerHTML = '🔊';
+            }
+        }
+
+        function speakText(text) {
+            if (isAudioMuted || !('speechSynthesis' in window)) {
+                return;
+            }
+
+            // Cancel any ongoing speech
+            window.speechSynthesis.cancel();
+
+            // Clean the text for better speech
+            const cleanText = text.replace(/```[\s\S]*?```/g, 'code block')
+                                  .replace(/\*\*(.*?)\*\*/g, '$1')
+                                  .replace(/<[^>]*>/g, '')
+                                  .replace(/[⚠️🩺📰📄📖🔴🎤🔊🔇➡️1️⃣2️⃣]/g, '')
+                                  .replace(/\n\n+/g, '. ');
+
+            // Split text into chunks if it's too long (for better speech handling)
+            const maxLength = 200;
+            const chunks = [];
+            let currentChunk = '';
+            
+            const sentences = cleanText.split(/[.!?]+/);
+            
+            for (let sentence of sentences) {
+                sentence = sentence.trim();
+                if (!sentence) continue;
+                
+                if ((currentChunk + sentence).length < maxLength) {
+                    currentChunk += sentence + '. ';
+                } else {
+                    if (currentChunk) chunks.push(currentChunk);
+                    currentChunk = sentence + '. ';
+                }
+            }
+            if (currentChunk) chunks.push(currentChunk);
+
+            // Speak each chunk
+            let currentIndex = 0;
+            function speakNextChunk() {
+                if (currentIndex < chunks.length && !isAudioMuted) {
+                    const utterance = new SpeechSynthesisUtterance(chunks[currentIndex]);
+                    utterance.rate = 0.9;
+                    utterance.pitch = 1;
+                    utterance.volume = 1;
+                    
+                    utterance.onend = function() {
+                        currentIndex++;
+                        speakNextChunk();
+                    };
+                    
+                    utterance.onerror = function(event) {
+                        console.error('Speech error:', event);
+                        currentIndex++;
+                        speakNextChunk();
+                    };
+                    
+                    window.speechSynthesis.speak(utterance);
+                }
+            }
+            
+            speakNextChunk();
+        }
+
+        function addMessage(message, isUser, speakContent = null) {
+            const chatBox = document.getElementById('chatBox');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.innerHTML = formatMessage(message);
+
+            messageDiv.appendChild(contentDiv);
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // Use speakContent if provided, otherwise use message
+            if (!isUser) {
+                const textToSpeak = speakContent !== null ? speakContent : message;
+                speakText(textToSpeak);
+            }
+        }
+
+        function addCollapsibleContent(content) {
+            const chatBox = document.getElementById('chatBox');
+            const collapsibleDiv = document.createElement('div');
+            collapsibleDiv.className = 'collapsible-content';
+            collapsibleDiv.innerHTML = `
+                <button class="collapsible-btn" onclick="toggleCollapsible(this)">
+                    📄 Hide Full Document
+                </button>
+                <div class="collapsible-body">
+                    <pre>${content}</pre>
+                </div>
+            `;
+            chatBox.appendChild(collapsibleDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function toggleCollapsible(button) {
+            const body = button.nextElementSibling;
+            if (body.style.display === 'none') {
+                body.style.display = 'block';
+                button.textContent = '📄 Hide Full Document';
+            } else {
+                body.style.display = 'none';
+                button.textContent = '📄 View Full Document';
+            }
+        }
+
+        function formatMessage(message) {
+            message = message.replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre>$2</pre>');
+            message = message.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            message = message.replace(/\n/g, '<br>');
+            return message;
+        }
+
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('userInput');
+            const message = input.value.trim();
+
+            if (!message) return;
+
+            addMessage(message, true);
+            input.value = '';
+            showLoading();
+
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+
+                const data = await response.json();
+                hideLoading();
+
+                // Handle new response format for documents
+                if (data.text) {
+                    // Display text but speak the separate content if provided
+                    addMessage(data.text, false, data.speak);
+                    
+                    // If there's full content, add collapsible section
+                    if (data.full_content) {
+                        addCollapsibleContent(data.full_content);
+                    }
+                } else if (data.reply === 'OPEN_YOUTUBE') {
+                    window.open('https://www.youtube.com', '_blank');
+                    addMessage('Opening YouTube...', false);
+                } else if (data.reply === 'OPEN_GOOGLE') {
+                    window.open('https://www.google.com', '_blank');
+                    addMessage('Opening Google...', false);
+                } else if (data.reply === 'OPEN_FACEBOOK') {
+                    window.open('https://www.facebook.com', '_blank');
+                    addMessage('Opening Facebook...', false);
+                } else if (data.reply === 'OPEN_SBTET') {
+                    window.open('https://www.sbtet.ap.gov.in', '_blank');
+                    addMessage('Opening SBTET...', false);
+                } else if (data.reply === 'OPEN_MUSIC') {
+                    window.open('https://www.spotify.com', '_blank');
+                    addMessage('Opening Music...', false);
+                } else if (data.reply) {
+                    addMessage(data.reply, false);
+                }
+            } catch (error) {
+                hideLoading();
+                addMessage('Sorry, there was an error processing your request.', false);
+                console.error('Error:', error);
+            }
+        }
+
+        async function uploadFile() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+
+            if (!file) return;
+
+            addMessage(`Uploading ${file.name}...`, true);
+            showLoading();
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                hideLoading();
+
+                if (data.type === 'document') {
+                    // Document uploaded, show options
+                    addMessage(data.message, false, data.speak);
+                } else if (data.caption) {
+                    // Image caption result
+                    addMessage(data.caption, false);
+                } else if (data.type === 'text') {
+                    // Text file result
+                    const preview = data.result.length > 500
+                        ? data.result.substring(0, 500) + '...'
+                        : data.result;
+                    addMessage(`File content:\n\n${preview}`, false);
+                } else if (data.status === 'error') {
+                    addMessage(`Error: ${data.message}`, false);
+                } else {
+                    addMessage('File uploaded successfully!', false);
+                }
+            } catch (error) {
+                hideLoading();
+                addMessage('Sorry, there was an error uploading the file.', false);
+                console.error('Error:', error);
+            }
+
+            fileInput.value = '';
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        window.onload = function() {
+            document.getElementById('userInput').focus();
+        };
+    </script>
+</body>
+</html>
