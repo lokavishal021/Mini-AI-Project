@@ -1,0 +1,16 @@
+﻿apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: omnibot-ingress
+spec:
+  rules:
+  - host: omnibot.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: omnibot-service
+            port:
+              number: 80

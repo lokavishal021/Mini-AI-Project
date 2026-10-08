@@ -1,0 +1,20 @@
+﻿apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: omnibot-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: omnibot
+  template:
+    metadata:
+      labels:
+        app: omnibot
+    spec:
+      containers:
+      - name: omnibot
+        image: omnibot-app:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 5000

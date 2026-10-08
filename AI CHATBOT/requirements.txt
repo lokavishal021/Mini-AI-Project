@@ -1,0 +1,9 @@
+﻿Flask
+sympy
+wikipedia
+pytesseract
+Pillow
+pyttsx3
+transformers
+PyPDF2
+python-docx
